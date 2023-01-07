@@ -10,7 +10,8 @@
                 <el-submenu index="1">
                     <template slot="title">
                         <!-- 头像 -->
-                        <img src="../../assets/images/logo.png" alt="" class="avatar" />
+                        <img :src="getUserinfos.user_pic" v-if="getUserinfos.user_pic" alt="" class="avatar" />
+                        <img src="../../assets/images/user.jpg" v-else alt="" class="avatar" />
                         <span>个人中心</span>
                     </template>
                     <el-menu-item index="1-1"><i class="el-icon-s-operation"></i>基本资料</el-menu-item>
@@ -22,11 +23,38 @@
         </el-header>
         <el-container>
             <!-- 侧边栏区域 -->
-            <el-aside width="200px">Aside</el-aside>
+            <!-- 左侧边栏区域 -->
+            <el-aside width="200px">
+                <div class="user-box">
+                    <img :src="getUserinfos.user_pic" v-if="getUserinfos.user_pic" alt="" />
+                    <img src="../../assets/images/user.jpg" v-else alt="" />
+                    <span>欢迎 {{ getUserinfos.nickname || getUserinfos.username }}</span>
+                </div>
+                <!-- 左侧菜单栏区域 -->
+                <el-menu default-active="1" class="el-menu-vertical-demo" background-color="#23262E" text-color="#fff"
+                    active-text-color="#409EFF" unique-opened router>
+                    <div v-for="item in menu" :key="item.indexPath">
+                        <!-- 不包含子菜单的“一级菜单” -->
+                        <el-menu-item :index="item.indexPath" v-if="!item.children"><i :class="item.icon"></i>{{
+        item.title
+}}</el-menu-item>
+                        <!-- 包含子菜单的“一级菜单” -->
+                        <el-submenu :index="item.indexPath" v-else>
+                            <template slot="title">
+                                <i :class="item.icon"></i>
+                                <span>{{ item.title }}</span>
+                            </template>
+                            <el-menu-item v-for="child in item.children" :key="child.indexPath"
+                                :index="child.indexPath"><i :class="child.icon"></i>{{ child.title }}</el-menu-item>
+
+                        </el-submenu>
+                    </div>
+                </el-menu>
+            </el-aside>
             <el-container>
                 <!-- 页面主体区域 -->
                 <el-main>
-                    Main.vue后台主页
+                    <router-view></router-view>
                 </el-main>
                 <!-- 底部 footer 区域 -->
                 <el-footer>© www.itheima.com - 黑马程序员</el-footer>
@@ -36,8 +64,22 @@
 </template>
   
 <script>
+import AUTH from '@/api/user.js'
+import { mapGetters } from 'vuex'
 export default {
     name: 'Main',
+    data() {
+        return {
+            menu: [] //左侧菜单信息
+        }
+    },
+    created() {
+        this.$store.dispatch('user/getUserInfo')
+        this.getUserMenu()
+    },
+    computed: {
+        ...mapGetters('user', ['getUserinfos'])
+    },
     methods: {
         logout() {
             this.$confirm('您确定退出?, 是否继续?', '提示', {
@@ -58,7 +100,19 @@ export default {
                     message: '已取消退出'
                 });
             });
-        }
+        },
+        //获取左侧菜单
+        async getUserMenu() {
+            try {
+                const { data: res } = await AUTH.UserMenu()
+                console.log('获取左侧菜单成功', res)
+                if (res.code !== 0) return this.$message.error(res.message);
+                // 保存数据
+                this.menu = res.data
+            } catch (err) {
+                console.log('获取左侧菜单失败', err)
+            }
+        },
     }
 }
 </script>
@@ -70,6 +124,39 @@ export default {
     .el-header,
     .el-aside {
         background-color: #23262e;
+        // 侧边栏菜单的样式
+
+        .el-submenu,
+        .el-menu-item {
+            width: 200px;
+            user-select: none;
+        }
+
+    }
+
+    // 左侧边栏用户信息区域
+    .user-box {
+        height: 70px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-top: 1px solid #000;
+        border-bottom: 1px solid #000;
+        user-select: none;
+
+        img {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background-color: #fff;
+            margin-right: 15px;
+            object-fit: cover;
+        }
+
+        span {
+            color: white;
+            font-size: 12px;
+        }
     }
 
     .el-header {

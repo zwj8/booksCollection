@@ -11,15 +11,29 @@ const routes = [
       component: () => import('@/views/main/Main.vue'),
       redirect:'/home',//路由重定向, 指打开首页时默认加载home页面
       children: [
+        //首页
         {
           path: 'home',
           name: 'home',
           component: () => import('@/views/home/Home.vue')
         },
+        //修改用户信息
         {
           path: 'user-info',
           name: 'userinfo',
-          component: () => import('@/views/userinfo/UserInfo.vue')
+          component: () => import('@/views/user/UserInfo.vue')
+        },
+        //更换用户头像
+        {
+          path: '/user-avatar',
+          name: 'useravatar',
+          component: () => import('@/views/user/Avator.vue')
+        },
+        //重置密码
+        {
+          path: "/user-pwd",
+          name: 'userpwd',
+          component: () => import('@/views/user/Password.vue')
         }
       ]
     },

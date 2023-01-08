@@ -16,7 +16,7 @@
             </el-form-item>
             <el-form-item>
                 <el-button type="primary" @click="submitForm()">提交</el-button>
-                <el-button @click="resetForm('ruleForm')">重置</el-button>
+                <el-button @click="resetForm">重置</el-button>
             </el-form-item>
         </el-form>
     </el-card>
@@ -24,13 +24,14 @@
   
 <script>
 import { mapGetters } from 'vuex';
+import AUTH from '@/api/user.js'
 
 export default {
     name: 'UserInfo',
     data() {
 
         return {
-            ruleForm: this.$store.state.user.info,
+            ruleForm: { ...this.$store.state.user.info },
             rules: {
                 username: [
                     { required: true, message: '请输入您的登录名称', trigger: 'blur' },
@@ -53,15 +54,27 @@ export default {
     },
     methods: {
         submitForm() {
+            this.$refs.ruleForm.validate(async (valid) => {
+                if (!valid) return
+                try {
+                    const { data } = await AUTH.UpdateUserInfo(this.ruleForm)
+                    console.log('更新用户信息成功', data)
+                    if (data.code !== 0) return this.$message.error(data.message)
+                    this.$message.success(data.message)
+                    // 把更新后的用户信息保存到vuex中
+                    this.$store.dispatch('user/getUserInfo')
+                } catch (err) {
+                    console.log('更新用户信息失败', err)
+                }
 
+
+            });
         },
         resetForm() {
-
-        }
-
+            this.ruleForm = { ...this.$store.state.user.info }
+        },
     }
 }
-
 </script>
   
 <style lang="less" scoped>
